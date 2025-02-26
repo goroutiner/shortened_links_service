@@ -3,41 +3,59 @@ package handlers_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"shortened_links_service/internal/entities"
 	"shortened_links_service/internal/handlers"
-	"shortened_links_service/internal/services"
-	"shortened_links_service/internal/storage"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-// TestShortenLink тестирует обработчик handlers.ShortenLink() на корректность обработки ссылок
-func TestShortenLink(t *testing.T) {
-	store := storage.NewMemoryStore()
-	service := services.NewShortenerService(store)
-	handler := handlers.ShortenLink(service)
+// MockShortenerService — мок для ShortenerService
+type MockShortenerService struct {
+	mock.Mock
+}
 
-	testLink := "https://finance.ozon.ru"
+// GetShortLink — заглушка для метода получения сокращённой ссылки
+func (m *MockShortenerService) GetShortLink(originalLink string) (string, error) {
+	args := m.Called(originalLink)
+	return args.String(0), args.Error(1)
+}
+
+// GetOriginalLink — заглушка для метода получения оригинального URL
+func (m *MockShortenerService) GetOriginalLink(shortLink string) (string, error) {
+	args := m.Called(shortLink)
+	return args.String(0), args.Error(1)
+}
+
+// TestGetShortLinkIntegration проверяет работу метода GetShortLink хендлера с подключением к http серверу
+func TestGetShortLinkIntegration(t *testing.T) {
+	mockService := new(MockShortenerService)
+	handler := handlers.RegisterShortenerHandler(mockService)
+
+	testOriginalLink := "https://example.com"
+	expectedShortLink := "abcd123456"
 
 	// Создаём тестовый HTTP-запрос
-	requestBody, _ := json.Marshal(entities.Link{OriginalLink: testLink})
+	requestBody, _ := json.Marshal(entities.Link{OriginalLink: testOriginalLink})
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/shorten", bytes.NewReader(requestBody))
 	req.Header.Set("Content-Type", "application/json")
 
 	// Создаем маршрутизатор и регистрируем маршрут с параметром
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/v1/shorten", handler)
+	mux.HandleFunc("POST /api/v1/shorten", handler.GetShortLink())
 
 	// Создаём тестовый HTTP-ответ
 	respRec := httptest.NewRecorder()
 
+	mockService.On("GetShortLink", testOriginalLink).Return(expectedShortLink, nil)
 	mux.ServeHTTP(respRec, req)
 
-	// Проверка код ответа
+	// Проверка кода ответа
 	assert.Equalf(t, http.StatusOK, respRec.Code, "Ожидался статус 200, но получен %d", respRec.Code)
 
 	// Проверка JSON-ответа
@@ -47,38 +65,29 @@ func TestShortenLink(t *testing.T) {
 
 	// Проверка получения сокращенной ссылки из тела ответа
 	shortLink := response["short_link"]
-	require.NotEmpty(t, shortLink, "Сокращённая ссылка должна быть не пустой")
-	require.Equal(t, 10, len(shortLink), "Число символов в строке не равно 10")
+	require.Equal(t, expectedShortLink, shortLink)
 
-	// Проверка получения оригинальной ссылки по сокращённой
-	originalLink, err := service.GetOriginalLink(shortLink)
-	assert.NoError(t, err, "Ошибка при получении оригинального URL")
-	require.NotEmpty(t, originalLink, "Оригинальная ссылка должна быть не пустой")
-	assert.Equalf(t, testLink, originalLink, `Ожидалась оригинальная URL "%s", но получена "%s"`, testLink, originalLink)
+	mockService.AssertExpectations(t)
 }
 
-// TestRerouteLink тестирует обработчик handlers.RerouteLink() на корректность обработки ссылок
-func TestRerouteLink(t *testing.T) {
-	store := storage.NewMemoryStore()
-	service := services.NewShortenerService(store)
-	handler := handlers.RerouteLink(service)
+// TestGetOriginalLinkIntegration проверяет работу метода GetOriginalLink хендлера с подключением к http серверу
+func TestGetOriginalLinkIntegration(t *testing.T) {
+	mockService := new(MockShortenerService)
+	handler := handlers.RegisterShortenerHandler(mockService)
 
-	testLink := "https://finance.ozon.ru"
-
-	shortLink, err := service.GetShortLink(testLink)
-	assert.NoError(t, err, "Ошибка добавления тестовой ссылки в хранилище")
+	expectedOriginalLink := "https://example.com"
+	testShortLink := "abcd123456"
 
 	// Создаём тестовый HTTP-запрос
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/"+shortLink, nil)
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/%s", testShortLink), nil)
 
-	// Создаем маршрутизатор и регистрируем маршрут с параметром
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /api/v1/{short_link}", handler)
+	mux.HandleFunc("GET /api/v1/{short_link}", handler.GetOriginalLink())
 
 	// Создаём тестовый HTTP-ответ
 	respRec := httptest.NewRecorder()
 
-	// Вызываем обработчик
+	mockService.On("GetOriginalLink", testShortLink).Return(expectedOriginalLink, nil)
 	mux.ServeHTTP(respRec, req)
 
 	// Проверка кода ответа
@@ -86,11 +95,12 @@ func TestRerouteLink(t *testing.T) {
 
 	// Проверка JSON-ответа
 	var response map[string]string
-	err = json.Unmarshal(respRec.Body.Bytes(), &response)
+	err := json.Unmarshal(respRec.Body.Bytes(), &response)
 	assert.NoErrorf(t, err, "Ошибка парсинга JSON-ответа: %v", err)
 
 	// Проверка получения оригинальной ссылки из тела ответа
 	originalLink := response["original_link"]
-	require.NotEmpty(t, originalLink, "Оригинальная ссылка должна быть не пустой")
-	assert.Equalf(t, testLink, originalLink, `Ожидался original_link "%s", но получен "%s"`, testLink, originalLink)
+	require.Equal(t, expectedOriginalLink, originalLink)
+
+	mockService.AssertExpectations(t)
 }

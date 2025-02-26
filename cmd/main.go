@@ -8,6 +8,8 @@ import (
 	"shortened_links_service/internal/handlers"
 	"shortened_links_service/internal/services"
 	"shortened_links_service/internal/storage"
+	"shortened_links_service/internal/storage/database"
+	"shortened_links_service/internal/storage/memory"
 	"time"
 )
 
@@ -19,28 +21,29 @@ func main() {
 
 	go handlers.СleanupVisitors()
 
-	switch config.Mode {
-	case "in-memory":
-		store = storage.NewMemoryStore()
+	switch "in-memory" {
+	case config.Mode:
+		store = memory.NewMemoryStore()
 		log.Println("Using in-memory storage")
 	case "postgres":
-		entities.Db, err = storage.NewDatabaseStore(config.PsqlUrl)
+		entities.Db, err = database.NewDatabaseStore(config.PsqlUrl)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		defer entities.Db.Close()
 
-		store = storage.NewDatabaseConection(entities.Db)
+		store = database.NewDatabaseConection(entities.Db)
 		log.Println("Using PostgreSQL store")
 	default:
 		log.Fatalf("config.Mode is empty in /internal/config/setting.go")
 	}
 
 	service := services.NewShortenerService(store)
+	hadler := handlers.RegisterShortenerHandler(service)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /api/v1/shorten", handlers.ShortenLink(service))
-	mux.HandleFunc("GET /api/v1/{short_link}", handlers.RerouteLink(service))
+	mux.HandleFunc("POST /api/v1/shorten", hadler.GetShortLink())
+	mux.HandleFunc("GET /api/v1/{short_link}", hadler.GetOriginalLink())
 
 	serv := &http.Server{
 		Addr:         config.Port,

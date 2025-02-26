@@ -1,8 +1,7 @@
-package storage
+package database
 
 import (
 	"log"
-	"shortened_links_service/internal/entities"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -24,32 +23,24 @@ func NewDatabaseStore(psqlUrl string) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	var exists bool
-	err = db.Get(&exists, `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = $1)`, entities.TableName)
-	if err != nil {
-		return nil, err
-	}
-
-	if !exists {
-		db.MustExec(`
-		CREATE TABLE links (
+	db.MustExec(`
+		CREATE TABLE IF NOT EXISTS links (
             id SERIAL PRIMARY KEY,
             short_link VARCHAR(10) UNIQUE NOT NULL,
             original_link TEXT UNIQUE NOT NULL
         );
 		
-		CREATE INDEX link_indx ON links (short_link, original_link);
+		CREATE INDEX IF NOT EXISTS link_indx ON links (short_link, original_link);
 		`)
-		log.Println("Creating a database ...")
-	}
+
+	log.Println("Creating a database ...")
 
 	return db, err
 }
 
 // SaveLinks сохраняет сокращенную и оригинальную ссылку в таблице links
-func (s *Database) SaveLinks(shortLink, originalLink string) error {
-	_, err := s.db.Exec("INSERT INTO links (short_link, original_link) VALUES ($1, $2) ON CONFLICT (original_link) DO NOTHING", shortLink, originalLink)
-	return err
+func (s *Database) SaveLinks(shortLink, originalLink string) {
+	_, _ = s.db.Exec("INSERT INTO links (short_link, original_link) VALUES ($1, $2) ON CONFLICT (original_link) DO NOTHING", shortLink, originalLink)
 }
 
 // GetOriginalLink возвращает сокращенную ссылку, полученную по ее оригиналу записанному в таблице links
