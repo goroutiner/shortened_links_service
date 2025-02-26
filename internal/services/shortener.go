@@ -56,10 +56,7 @@ func (s *ShortenerService) GetShortLink(originalLink string) (string, error) {
 	}
 
 	shortLink = generateShortLink()
-	err = s.storage.SaveLinks(shortLink, originalLink)
-	if err != nil {
-		return "", err
-	}
+	s.storage.SaveLinks(shortLink, originalLink)
 
 	return shortLink, nil
 
