@@ -1,4 +1,4 @@
-package storage
+package memory
 
 import (
 	"errors"
@@ -6,8 +6,8 @@ import (
 )
 
 type Memory struct {
-	shortToOriginal map[string]string // shortToOriginal словарь для связи short_link -> original_short
-	originalToShort map[string]string // originalToShort словарь для связи original_short -> short_link
+	shortToOriginal map[string]string // shortToOriginal словарь для связи short_link -> original_link
+	originalToShort map[string]string // originalToShort словарь для связи original_link -> short_link
 	mu              sync.RWMutex
 }
 
@@ -20,12 +20,11 @@ func NewMemoryStore() *Memory {
 }
 
 // SaveLinks сохраняет сокращенную и оригинальную ссылку в Memory
-func (m *Memory) SaveLinks(shortLink, originalLink string) error {
+func (m *Memory) SaveLinks(shortLink, originalLink string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.shortToOriginal[shortLink] = originalLink
 	m.originalToShort[originalLink] = shortLink
-	return nil
 }
 
 // GetShortLink возвращает сокращенную ссылку, полученную по ее оригиналу записанному в Memory

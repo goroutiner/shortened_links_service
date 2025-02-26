@@ -8,7 +8,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 
 # Создаем исполняемую и служебные директории
-RUN mkdir cmd && mkdir internal
+RUN mkdir cmd internal
 
 # Копируем в них файлы
 COPY ./cmd ./cmd

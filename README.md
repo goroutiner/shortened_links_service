@@ -121,3 +121,13 @@ go test -v ./internal/services/ -run TestShortenerService_Postgres
 ```sh
 go test -v ./internal/handlers/...
 ```
+
+---
+
+## 🛠️ Технические ресурсы
+
+- **Библиотеки для взаимодействия с БД:** [jmoiron/sqlx](https://github.com/jmoiron/sqlx) и [ackc/pgx](https://github.com/jackc/pgx)
+
+- **Библиотека для написания тестов:** [stretchr/testify](https://github.com/stretchr/testify)
+
+- **Библиотека для ограничения RPS пользователей сервиса:** [golang.org/x/time/rate](https://pkg.go.dev/golang.org/x/time@v0.10.0/rate#pkg-overview)

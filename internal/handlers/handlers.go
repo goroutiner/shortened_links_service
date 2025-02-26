@@ -8,8 +8,16 @@ import (
 	"shortened_links_service/internal/services"
 )
 
-// ShortenLink обрабатывает POST запрос с оригинальной ссылкой и возвращет сокращенную ссылку в формате json
-func ShortenLink(storage *services.ShortenerService) func(http.ResponseWriter, *http.Request) {
+type ShortenerHandler struct {
+	service services.ShortenerServiceInterface
+}
+
+func RegisterShortenerHandler(service services.ShortenerServiceInterface) *ShortenerHandler {
+	return &ShortenerHandler{service: service}
+}
+
+// GetShortLink обрабатывает POST запрос с оригинальной ссылкой и возвращет сокращенную ссылку в формате json
+func (s *ShortenerHandler) GetShortLink() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var link entities.Link
 
@@ -19,7 +27,7 @@ func ShortenLink(storage *services.ShortenerService) func(http.ResponseWriter, *
 			return
 		}
 
-		shortLink, err := storage.GetShortLink(link.OriginalLink)
+		shortLink, err := s.service.GetShortLink(link.OriginalLink)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Failed to generate short link", http.StatusInternalServerError)
@@ -32,12 +40,12 @@ func ShortenLink(storage *services.ShortenerService) func(http.ResponseWriter, *
 	}
 }
 
-// RerouteLink обрабатывает GET запрос с сокращенной ссылкой и возвращает оригинальную ссылку в формате json
-func RerouteLink(storage *services.ShortenerService) func(http.ResponseWriter, *http.Request) {
+// GetOriginalLink обрабатывает GET запрос с сокращенной ссылкой и возвращает оригинальную ссылку в формате json
+func (s *ShortenerHandler) GetOriginalLink() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		shortURL := r.PathValue("short_link")
 
-		originalURL, err := storage.GetOriginalLink(shortURL)
+		originalURL, err := s.service.GetOriginalLink(shortURL)
 		if err != nil {
 			log.Println(err)
 			http.NotFound(w, r)
