@@ -21,8 +21,8 @@ func main() {
 
 	go handlers.СleanupVisitors()
 
-	switch "in-memory" {
-	case config.Mode:
+	switch config.Mode {
+	case "in-memory":
 		store = memory.NewMemoryStore()
 		log.Println("Using in-memory storage")
 	case "postgres":
