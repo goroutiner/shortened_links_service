@@ -1,31 +1,37 @@
+[![codecov](https://codecov.io/gh/goroutiner/shortened_links_service/graph/badge.svg)](https://codecov.io/gh/goroutiner/shortened_links_service)
+
+## 📖 Translations
+- [Read in Russian](/README_RU.md)
+
+---
+
 <h3 align="center">
   <div align="center">
-    <h1>Shortened Links Service </h1>
+    <h1>Shortened Links Service</h1>
   </div>
-  </a>
 </h3>
 
-## 📋 Описание проекта
+## 📋 Project Description
 
-**Shortened Links Service** - это проект, представляющий собой сервис для сокращения URL-адресов. Сервис поддерживает хранение данных в PostgreSQL и in-memory режимах.
-
----
-
-## 🚀 Запуск проекта
-
-### 1️⃣ Установка зависимостей
+**Shortened Links Service** is a project that provides a service for shortening URLs. The service supports data storage in PostgreSQL and in-memory modes.
 
 ---
 
-*❗Перед запуском сервиса убедитесь, что у вас установлен **Docker** и **Docker Compose**.*
+## 🚀 Running the Project
+
+### 1️⃣ Installing Dependencies
 
 ---
 
-### 2️⃣ Конфигурация окружения 
+*❗Before running the service, make sure you have **Docker** and **Docker Compose** installed.*
 
-Переменные окружения **environment** установлены по умолчанию, но вы их можете изменить в файле `compose.yaml`:
+---
 
-- Для сервиса `golang`:
+### 2️⃣ Environment Configuration
+
+The **environment** variables are set by default, but you can change them in the `compose.yaml` file:
+
+- For the `golang` service:
 ```yaml
 ...
 environment:
@@ -34,9 +40,9 @@ environment:
     DATABASE_URL: "postgres://root:password@postgres:5432/mydb?sslmode=disable"
 ...
 ```
-Если необходим **in-memory** режим, то укажите `MODE: "in-memory"`.
+If you need **in-memory** mode, specify `MODE: "in-memory"`.
 
-- Для сервиса `postgres`:
+- For the `postgres` service:
 ```yaml
 ...
 environment:
@@ -45,31 +51,32 @@ environment:
     POSTGRES_DB: "mydb"
 ...
 ```
-### 3️⃣ Запуск проекта
 
-Проект запускается с помощью `docker compose`:
+### 3️⃣ Running the Project
+
+The project is started using `docker compose`:
 
 ```sh
- make run
+make run
 ```
 
-### 4️⃣ Остановка сервиса
+### 4️⃣ Stopping the Service
 
-Для остановки работы контейнеров выполните:
+To stop the containers, run:
 
 ```sh
- make stop
+make stop
 ```
 
 ---
 
-## 🔥 API Эндпоинты
+## 🔥 API Endpoints
 
-### 1️⃣ Пример создание короткой ссылки
+### 1️⃣ Example: Creating a Short Link
 
 **POST** `/api/v1/shorten`
 
-#### **Тело запроса:**
+#### **Request Body:**
 
 ```json
 {
@@ -77,7 +84,7 @@ environment:
 }
 ```
 
-#### **Тело ответа:**
+#### **Response Body:**
 
 ```json
 {
@@ -85,11 +92,11 @@ environment:
 }
 ```
 
-### 2️⃣ Пример получение оригинальной ссылки
+### 2️⃣ Example: Retrieving the Original Link
 
 **GET** `/api/v1/{short_link}`
 
-#### **Тело ответа:**
+#### **Response Body:**
 
 ```json
 {
@@ -99,19 +106,19 @@ environment:
 
 ---
 
-## 🧪 Запуск тестов
+## 🧪 Running Tests
 
-### 1️⃣ Команда для запуска unit-тестов:
+### 1️⃣ Command to Run Unit Tests:
 
 ```sh
 make unit-tests  
 ```
 
-### 2️⃣ Команда для запуска integration-тестов:
+### 2️⃣ Command to Run Integration Tests:
 
 ---
 
-*❗Перед запуском данных тестов вы должны быть уверены, что у вас установлен и запущен **Docker**.* 
+*❗Before running these tests, make sure you have **Docker** installed and running.* 
 
 --- 
 
@@ -119,7 +126,7 @@ make unit-tests
 make integration-tests
 ```
 
-### 3️⃣ После выполнения всех тестов нужно остановить контейнер с PosgreSQL и почистить кеш: 
+### 3️⃣ After running all tests, stop the PostgreSQL container and clear the cache:
 
 ```sh
 make clean
@@ -127,10 +134,12 @@ make clean
 
 ---
 
-## 🛠️ Технические ресурсы
+## 🛠️ Technical Resources
 
-- **Библиотеки для взаимодействия с БД:** [jmoiron/sqlx](https://github.com/jmoiron/sqlx) и [ackc/pgx](https://github.com/jackc/pgx)
+- **Libraries for Database Interaction:** [jmoiron/sqlx](https://github.com/jmoiron/sqlx) and [jackc/pgx](https://github.com/jackc/pgx)
 
-- **Библиотека для написания тестов:** [stretchr/testify](https://github.com/stretchr/testify)
+- **Library for Writing Tests:** [stretchr/testify](https://github.com/stretchr/testify)
 
-- **Библиотека для ограничения RPS пользователей сервиса:** [golang.org/x/time/rate](https://pkg.go.dev/golang.org/x/time@v0.10.0/rate#pkg-overview)
+- **Library for Limiting User RPS:** [golang.org/x/time/rate](https://pkg.go.dev/golang.org/x/time@v0.10.0/rate#pkg-overview)
+
+---

@@ -50,7 +50,7 @@ func getVisitor(ip string) *rate.Limiter {
 	}
 
 	v = &visitor{
-		limiter:  rate.NewLimiter(config.RateLimit, config.BufferLimit), 
+		limiter:  rate.NewLimiter(config.RateLimit, config.BufferLimit),
 		lastSeen: time.Now(),
 	}
 	visitors[ip] = v

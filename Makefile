@@ -6,14 +6,19 @@ stop:
 	@echo "Остановка сервиса:"
 	@docker compose down
 
-vet:
+fmt:
+	@go fmt ./...
+
+vet: fmt
 	@go vet ./...
 
 unit-tests: vet
 	@echo "Запуск unit-тестов для основной логики shortener-сервиса:"
 	@go test -v ./internal/services/...
+
 	@echo "Запуск unit-тестов для обработчиков:"
 	@go test -v ./internal/handlers/...
+	
 	@echo "Запуск unit-тестов для in-memory режима:"
 	@go test -v ./internal/storage/memory/...
 
