@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/goroutiner/shortened_links_service/graph/badge.svg?token=NFQQYHNL5J)](https://codecov.io/gh/goroutiner/shortened_links_service)
+[![codecov](https://codecov.io/gh/goroutiner/shortened_links_service/graph/badge.svg)](https://codecov.io/gh/goroutiner/shortened_links_service)
 
 ## 📖 Translations
 - [Read in Russian](/README_RU.md)
