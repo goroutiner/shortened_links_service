@@ -3,6 +3,7 @@ package services_test
 import (
 	"errors"
 	"shortened_links_service/internal/services"
+	"shortened_links_service/internal/storage/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,31 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// MockStorage — мок-хранилище, реализующее StorageInterface
-type MockStorage struct {
-	mock.Mock
-}
-
-// GetShortLink — заглушка для метода получения сокращённой ссылки
-func (m *MockStorage) GetShortLink(originalLink string) (string, error) {
-	args := m.Called(originalLink)
-	return args.String(0), args.Error(1)
-}
-
-// GetOriginalLink — заглушка для метода получения оригинального URL
-func (m *MockStorage) GetOriginalLink(shortLink string) (string, error) {
-	args := m.Called(shortLink)
-	return args.String(0), args.Error(1)
-}
-
-// SaveLinks — заглушка для метода сохранения ссылки.
-func (m *MockStorage) SaveLinks(shortLink, originalLink string) {
-	_ = m.Called(shortLink, originalLink)
-}
-
 // TestGetShortLink проверяет бизнес-логику генерации сокращенной ссылки с использованием mock-хранилища
 func TestGetShortLink(t *testing.T) {
-	mockStore := new(MockStorage)
+	mockStore := mocks.NewStorageInterface(t)
 	service := services.NewShortenerService(mockStore)
 
 	testLink := "https://exemple.com"
@@ -76,7 +55,7 @@ func TestGetShortLink(t *testing.T) {
 
 // TestGetOriginalLink проверяет получение оригинальной ссылки с использованием mock-хранилища
 func TestGetOriginalLink(t *testing.T) {
-	mockStore := new(MockStorage)
+	mockStore := mocks.NewStorageInterface(t)
 	service := services.NewShortenerService(mockStore)
 
 	testLink := "https://exemple.com"
